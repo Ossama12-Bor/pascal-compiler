@@ -1,7 +1,7 @@
 %{
 
 #include "Table_des_symboles.h"
-
+#include "PCode/PCode.h"
 #include <stdio.h>
 #include <stdlib.h>
   
@@ -261,15 +261,15 @@ exp
 // V.1 Exp. arithmetiques
 : MOINS exp %prec UNA         {}
          // -x + y lue comme (- x) + y  et pas - (x + y)
-| exp PLUS exp                {}
-| exp MOINS exp               {}
-| exp STAR exp                {}
+| exp PLUS exp                {ADDI;print_top_stack_int();}
+| exp MOINS exp               {MINUSI;ADDI;print_top_stack_int();}
+| exp STAR exp                {MULTI;print_top_stack_int();}
 | exp DIV exp                 {}
 | PO exp PF                   {}
 | ID                          {}
 | app                         {}
-| NUM                         {}
-| DEC                         {}
+| NUM                         {LOADI($1); print_top_stack_int();}
+| DEC                         {LOADF($1);print_top_stack_int();}
 
 
 // V.2. Booléens
@@ -311,9 +311,8 @@ int main () {
   */
   
   
-printf("#include \"PCode.h\"\n\n");
-    	 
-return yyparse ();
+  printf("#include \"PCode.h\"\n\n");
+  return yyparse ();
 
 } 
 
