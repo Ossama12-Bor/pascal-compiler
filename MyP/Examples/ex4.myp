@@ -1,0 +1,9 @@
+program ex4;
+{Les variables déclarées peuvent être initialisées et redéfinie}
+var
+  x:int:=3;
+
+begin
+  x = 5;
+  1+2*x;
+end.

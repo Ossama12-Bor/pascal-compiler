@@ -1,0 +1,9 @@
+program ex2;
+{Les variables peuvent etre déclaré avec la syntaxe suivante}
+var
+  x:int;
+
+begin
+  x:=3;
+  1+2*x;
+end.

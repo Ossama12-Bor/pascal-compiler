@@ -1,0 +1,6 @@
+program ex1;
+{La valeur de retour d'un programme est la valeur de sa dernière instruction} 
+begin
+  1+2*3;
+end.
+

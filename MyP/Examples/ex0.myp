@@ -1,0 +1,5 @@
+program ex0;
+{Ceci est un commentaire en Pascal qui est ignorée par myp}
+begin
+  1;
+end.
