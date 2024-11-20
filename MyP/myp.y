@@ -261,15 +261,22 @@ exp
 // V.1 Exp. arithmetiques
 : MOINS exp %prec UNA         {}
          // -x + y lue comme (- x) + y  et pas - (x + y)
-| exp PLUS exp                {ADDI;print_top_stack_int();}
-| exp MOINS exp               {MINUSI;ADDI;print_top_stack_int();}
-| exp STAR exp                {MULTI;print_top_stack_int();}
-| exp DIV exp                 {}
-| PO exp PF                   {}
+| exp PLUS exp                {if(stack[sp-2].float_value){I2F1;ADDF;}
+                              else if(stack[sp-1].float_value){I2F2;ADDF}
+                              else ADDI;}
+| exp MOINS exp               {if(stack[sp-2].float_value){I2F1;SUBF;}
+                              else if(stack[sp-1].float_value){I2F2;SUBF}
+                              else SUBI;}
+| exp STAR exp                {if(stack[sp-2].float_value || stack[sp-1].float_value){I2F2;MULTF;}
+                              else MULTI;}
+| exp DIV exp                 {{if(stack[sp-2].float_value){I2F1;DIVF;}
+                              else if(stack[sp-1].float_value){I2F2;DIVF}
+                              else DIVI;}}
+| PO exp PF                   {$$ = $2}
 | ID                          {}
 | app                         {}
-| NUM                         {LOADI($1); print_top_stack_int();}
-| DEC                         {LOADF($1);print_top_stack_int();}
+| NUM                         {LOADI($1);}
+| DEC                         {LOADF($1);}
 
 
 // V.2. Booléens
