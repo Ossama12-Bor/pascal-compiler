@@ -1,7 +1,7 @@
 %{
 
 #include "Table_des_symboles.h"
-#include "PCode/PCode.h"
+
 #include <stdio.h>
 #include <stdlib.h>
   
@@ -14,7 +14,7 @@ void yyerror (char* s) {
   }
 		
  int depth=0; // block depth
- 
+ int offset =0 ;//var global offset 
 
   char * start_main=  
 "int main() {\n\
@@ -105,9 +105,10 @@ prog_head : PRG ID PV
 ;
 
 prog_body : opt_funs
-           {printf("%s\n",start_main);}
-            opt_vars BIN inst_list BOUT DOT
-	   {printf("%s\n",end_main);}
+            {printf("%s\n",start_main);}
+            opt_vars
+	    BIN inst_list BOUT DOT
+	    {printf("%s\n",end_main);}
             
 ;
 
@@ -125,18 +126,14 @@ decl_list : decl_list decl   {}
 | decl                       {}
 ;
 
-decl: var_decl opt_value PV             {}
-;
-
-opt_value : AFF exp
-| ;
-
-
-var_decl : vlist CLN type     {}
-;
-
-vlist: vlist vir ID            {}
-| ID                           {}
+decl: ID CLN type PV             {
+  if( $3 == INT ){
+  set_symbol_value(string_to_sid($1), makeSymbol($3,offset++, 0));
+  printf("LOADI(0)\n");}
+  else if ( $3==FLOAT ){
+    set_symbol_value(string_to_sid($1), makeSymbol($3,offset++, 0));
+    printf("LOADF(0.0)\n");}
+}
 ;
 
 type
@@ -283,7 +280,11 @@ exp
                               else if($3 == FLOAT){$$ = FLOAT; printf("I2F1\nDIVF\n");}
                               else {$$ = INT;printf("DIVI\n");} }
 | PO exp PF                   {$$ = $2;}
-| ID                          {/*$$ = $1;*/}
+| ID                          {
+  $$ = get_symbole_value(string_to_sid($1)).type;
+  printf("LOADBP");
+  printf("SHIFT(%i)",get_symbole_value(string_to_sid($1)).offset);
+}
 | app                         {}
 | NUM                         {$$ = INT;printf("LOADI(%i)\n",$1);}
 | DEC                         {$$ = FLOAT;printf("LOADF(%f)\n",$1);}
@@ -328,8 +329,9 @@ int main () {
   */
   
   
-  printf("#include \"PCode.h\"\n\n");
-  return yyparse ();
+printf("#include \"PCode.h\"\n\n");
+    	 
+return yyparse ();
 
 } 
 
