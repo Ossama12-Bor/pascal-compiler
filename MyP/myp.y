@@ -261,22 +261,22 @@ exp
 // V.1 Exp. arithmetiques
 : MOINS exp %prec UNA         {}
          // -x + y lue comme (- x) + y  et pas - (x + y)
-| exp PLUS exp                {if(stack[sp-2].float_value){I2F1;ADDF;}
-                              else if(stack[sp-1].float_value){I2F2;ADDF}
-                              else ADDI;}
-| exp MOINS exp               {if(stack[sp-2].float_value){I2F1;SUBF;}
-                              else if(stack[sp-1].float_value){I2F2;SUBF}
-                              else SUBI;}
-| exp STAR exp                {if(stack[sp-2].float_value || stack[sp-1].float_value){I2F2;MULTF;}
-                              else MULTI;}
-| exp DIV exp                 {{if(stack[sp-2].float_value){I2F1;DIVF;}
-                              else if(stack[sp-1].float_value){I2F2;DIVF}
-                              else DIVI;}}
-| PO exp PF                   {$$ = $2}
+| exp PLUS exp                {if(stack[sp-2].float_value){printf("I2F1\nADDF\n");}
+                              else if(stack[sp-1].float_value){printf("I2F2\nADDF\n");}
+                              else printf("ADDI\n");}
+| exp MOINS exp               {if(stack[sp-2].float_value){printf("I2F1\nSUBF\n");}
+                              else if(stack[sp-1].float_value){printf("I2F2\nSUBF\n");}
+                              else printf("SUBI");}
+| exp STAR exp                {if(stack[sp-2].float_value || stack[sp-1].float_value){printf("I2F2\nMULTF\n");}
+                              else printf("MULTI\n");}
+| exp DIV exp                 {{if(stack[sp-2].float_value){printf("I2F1\n DIVF\n");}
+                              else if(stack[sp-1].float_value){printf("I2F2\nDIVF\n");}
+                              else printf("DIVI");}}
+| PO exp PF                   {$$ = $2;}
 | ID                          {}
 | app                         {}
-| NUM                         {LOADI($1);}
-| DEC                         {LOADF($1);}
+| NUM                         {$$ = INT;printf("LOADI(%i)\n",$1);}
+| DEC                         {$$ = FLOAT;printf("LOADF(%f)\n",$1);}
 
 
 // V.2. Booléens
