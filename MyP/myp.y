@@ -259,7 +259,9 @@ ret : exp
 
 exp
 // V.1 Exp. arithmetiques
-: MOINS exp %prec UNA         {}
+: MOINS exp %prec UNA         {$$ = $2;
+                                if ($2 == INT) {printf("MINUSI\n");} 
+                                else if ($2 == FLOAT) {printf("MINUSF\n");}}
          // -x + y lue comme (- x) + y  et pas - (x + y)
 | exp PLUS exp                {if($1 == FLOAT && $3 == FLOAT){$$ = FLOAT;printf("ADDF\n");}
                               else if($1== FLOAT){ $$ = FLOAT ;printf("I2F2\nADDF\n");}
