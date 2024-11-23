@@ -1,6 +1,7 @@
 %{
 
 #include "Table_des_symboles.h"
+#include "../Examples/PCode.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -90,7 +91,7 @@ char * type2string (int c) {
 
 // liste de tous les non terminaux dont vous voulez manipuler l'attribut
 %type <type_value> type exp  typename
-%type <string_value> fun_head
+%type <string_value> fun_head ida
 
  /* Attention, la rêgle de calcul par défaut $$=$1 
     peut créer des demandes/erreurs de type d'attribut */
@@ -126,12 +127,12 @@ decl_list : decl_list decl   {}
 | decl                       {}
 ;
 
-decl: ID CLN type PV             {
+decl: ID CLN type PV             {attribute valeur;
   if( $3 == INT ){
-  set_symbol_value(string_to_sid($1), makeSymbol($3,offset++, 0));
+  valeur = set_symbol_value(string_to_sid($1), makeSymbol($3,offset++, depth));
   printf("LOADI(0)\n");}
   else if ( $3==FLOAT ){
-    set_symbol_value(string_to_sid($1), makeSymbol($3,offset++, 0));
+    valeur = set_symbol_value(string_to_sid($1), makeSymbol($3,offset++, depth));
     printf("LOADF(0.0)\n");}
 }
 ;
@@ -210,7 +211,15 @@ block_end : BOUT
 
 // IV.1 Affectations
 
-aff : ID AFF exp               {}
+aff : ida AFF exp               {sid id = string_to_sid($1);
+                                attribute valeur = get_symbol_value(id);
+                                if(valeur->type != $3) {fprintf(stderr,"Erreur: Type error in affectation\n"); exit(-1);}
+                                printf("STOREP\n");}
+;
+ida : ID                        {$$ = $1;
+                                sid id = string_to_sid($1);
+                                attribute valeur = get_symbol_value(id);
+                                printf("LOADBP\nSHIFT(%d)\n",valeur->offset);}
 ;
 
 // IV.2. Conditionelles
@@ -281,9 +290,9 @@ exp
                               else {$$ = INT;printf("DIVI\n");} }
 | PO exp PF                   {$$ = $2;}
 | ID                          {
-  $$ = get_symbole_value(string_to_sid($1)).type;
-  printf("LOADBP");
-  printf("SHIFT(%i)",get_symbole_value(string_to_sid($1)).offset);
+  $$ = get_symbol_value(string_to_sid($1))->type;
+  printf("LOADBP\n");
+  printf("SHIFT(%i)\n",get_symbol_value(string_to_sid($1))->offset); printf("LOADP\n");
 }
 | app                         {}
 | NUM                         {$$ = INT;printf("LOADI(%i)\n",$1);}
