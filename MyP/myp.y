@@ -14,8 +14,16 @@ void yyerror (char* s) {
   exit(0);
   }
 		
- int depth=0; // block depth
- int offset =0 ;//var global offset 
+int depth=0; // block depth
+int offset =0 ;//var global offset 
+
+int makeLabel ()
+{
+  static int n = 0;
+  return ++n;
+}
+
+
 
   char * start_main=  
 "int main() {\n\
@@ -92,6 +100,7 @@ char * type2string (int c) {
 // liste de tous les non terminaux dont vous voulez manipuler l'attribut
 %type <type_value> type exp  typename
 %type <string_value> fun_head ida
+%type <label_value> if else
 
  /* Attention, la rêgle de calcul par défaut $$=$1 
     peut créer des demandes/erreurs de type d'attribut */
@@ -228,20 +237,20 @@ ida : ID                        {$$ = $1;
 //           avec ELSE en entrée (voir y.output)
 
 cond :
-if bool_cond inst  elsop       {}
+if bool_cond inst  elsop       {printf("End_%d:\n",$1);}
 ;
 
-elsop : else inst              {}
+elsop : else inst              {$1 = $<label_value>-2;printf("%d\n",$1);}
 |                  %prec IFX   {} // juste un "truc" pour éviter le message de conflit shift / reduce
 ;
 
-bool_cond : PO exp PF         {}
+bool_cond : PO exp PF         { printf("IFN(False_%d)\n",$<label_value>0);}
 ;
 
-if : IF                       {}
+if : IF                       {$$ = makeLabel();}
 ;
 
-else : ELSE                   {}
+else : ELSE                   {printf("GOTO(End_%d)\nFalse_%d:\n",$$,$$);}
 ;
 
 // IV.3. Iterations
@@ -301,13 +310,17 @@ exp
 
 // V.2. Booléens
 
-| NOT exp %prec UNA           {}
-| exp INF exp                 {}
-| exp SUP exp                 {}
-| exp EQUAL exp               {}
-| exp DIFF exp                {}
-| exp AND exp                 {}
-| exp OR exp                  {}
+| NOT exp %prec UNA           {printf("NOP\n");}
+| exp INF exp                 {if($1 == $3){if($1 == INT) printf("LTI\n"); else printf("LTF\n");} 
+                              else {fprintf(stderr,"Erreur: Type error in comparaison\n"); exit(-1);}}
+| exp SUP exp                 {if($1 == $3){if($1 == INT) printf("GTI\n"); else printf("GTF\n");} 
+                              else {fprintf(stderr,"Erreur: Type error in comparaison\n"); exit(-1);}}
+| exp EQUAL exp               {if($1 == $3){if($1 == INT) printf("EQI\n"); else printf("EQF\n");} 
+                              else {fprintf(stderr,"Erreur: Type error in comparaison\n"); exit(-1);}}
+| exp DIFF exp                {if($1 == $3){if($1 == INT) printf("NEQI\n"); else printf("NEQF\n");} 
+                              else {fprintf(stderr,"Erreur: Type error in comparaison\n"); exit(-1);}}
+| exp AND exp                 {printf("AND\n");}
+| exp OR exp                  {printf("OR\n");}
 
 ;
 
