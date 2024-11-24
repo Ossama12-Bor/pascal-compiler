@@ -20,7 +20,7 @@ int offset =0 ;//var global offset
 int makeLabel ()
 {
   static int n = 0;
-  return ++n;
+  return n++;
 }
 
 
@@ -100,7 +100,7 @@ char * type2string (int c) {
 // liste de tous les non terminaux dont vous voulez manipuler l'attribut
 %type <type_value> type exp  typename
 %type <string_value> fun_head ida
-%type <label_value> if else
+%type <label_value> if while
 
  /* Attention, la rêgle de calcul par défaut $$=$1 
     peut créer des demandes/erreurs de type d'attribut */
@@ -240,7 +240,7 @@ cond :
 if bool_cond inst  elsop       {printf("End_%d:\n",$1);}
 ;
 
-elsop : else inst              {$1 = $<label_value>-2;printf("%d\n",$1);}
+elsop : else inst              {}
 |                  %prec IFX   {} // juste un "truc" pour éviter le message de conflit shift / reduce
 ;
 
@@ -250,17 +250,17 @@ bool_cond : PO exp PF         { printf("IFN(False_%d)\n",$<label_value>0);}
 if : IF                       {$$ = makeLabel();}
 ;
 
-else : ELSE                   {printf("GOTO(End_%d)\nFalse_%d:\n",$$,$$);}
+else : ELSE                   {printf("GOTO(End_%d)\nFalse_%d:\n",$<label_value>-2,$<label_value>-2);}
 ;
 
 // IV.3. Iterations
 
-loop : while while_cond inst  {}
+loop : while while_cond inst  {printf("GOTO(StartLoop_%d)\nEndLoop_%d:\n",$1,$1);}
 ;
 
-while_cond : PO exp PF        {}
+while_cond : PO exp PF        {printf("IFN(EndLoop_%d)\n",$<label_value>0);}
 
-while : WHILE                 {}
+while : WHILE                 {$$ = makeLabel();printf("StartLoop_%d:\n",$$);}
 ;
 
 // IV.4. Valeur
