@@ -77,3 +77,19 @@ attribute set_symbol_value(sid symb_id,attribute value) {
 	return storage -> symbol_value;
 }
 
+
+
+
+
+
+void remove_local_variables(int depth){
+	elem * tracker = storage;
+	while (tracker->symbol_value->depth >= depth) {
+		tracker = tracker -> next;
+		free(storage);
+		storage = tracker;
+	}
+
+}
+
+

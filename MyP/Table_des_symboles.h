@@ -44,4 +44,7 @@ attribute get_symbol_value(sid symb_id);
 /* add the symbol symb_id with given value */
 attribute set_symbol_value(sid symb_id,attribute value);
 
+/* removes all symbols that have "depth" depth*/
+void remove_local_variables(int depth);
+
 #endif

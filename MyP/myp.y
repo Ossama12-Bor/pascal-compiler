@@ -1,7 +1,7 @@
 %{
 
 #include "Table_des_symboles.h"
-#include "../Examples/PCode.h"
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -200,7 +200,9 @@ inst_list: inst_list inst PV   {}
      // chaque instruction se termine par ";" contrairement au langage C
 
 inst:
-opt_vars block_begin inst_list block_end   {}
+ {depth++;printf("SAVEBP\n");} 
+ opt_vars  block_begin inst_list  block_end   {{printf("RESTOREBP\n");
+                                              remove_local_variables(depth); depth--;}}
 | aff                         {}
 | ret                         {}
 | cond                        {}
@@ -209,11 +211,11 @@ opt_vars block_begin inst_list block_end   {}
 
 // Entrée et sortie explicite d'un bloc
 
-block_begin : BIN
+block_begin : BIN 
 ;
 // entrée dans un sous-bloc
 
-block_end : BOUT
+block_end : BOUT 
 ;
 // sortie d'un sous-bloc
 
@@ -228,7 +230,9 @@ aff : ida AFF exp               {sid id = string_to_sid($1);
 ida : ID                        {$$ = $1;
                                 sid id = string_to_sid($1);
                                 attribute valeur = get_symbol_value(id);
-                                printf("LOADBP\nSHIFT(%d)\n",valeur->offset);}
+                                printf("LOADBP\n");
+                                for(int i=0;i<depth-valeur->depth;i++){printf("LOADP\n");}
+                                printf("SHIFT(%d)\n",valeur->offset);}
 ;
 
 // IV.2. Conditionelles
@@ -298,11 +302,12 @@ exp
                               else if($3 == FLOAT){$$ = FLOAT; printf("I2F1\nDIVF\n");}
                               else {$$ = INT;printf("DIVI\n");} }
 | PO exp PF                   {$$ = $2;}
-| ID                          {
-  $$ = get_symbol_value(string_to_sid($1))->type;
-  printf("LOADBP\n");
-  printf("SHIFT(%i)\n",get_symbol_value(string_to_sid($1))->offset); printf("LOADP\n");
-}
+| ID                          { attribute valeur = get_symbol_value(string_to_sid($1));
+                              $$ = valeur->type;
+                              printf("LOADBP\n");
+                              for(int i=0;i<valeur->depth-depth;i++){printf("LOADP\n");}
+                              printf("SHIFT(%i)\n",get_symbol_value(string_to_sid($1))->offset); printf("LOADP\n");
+                              }
 | app                         {}
 | NUM                         {$$ = INT;printf("LOADI(%i)\n",$1);}
 | DEC                         {$$ = FLOAT;printf("LOADF(%f)\n",$1);}
