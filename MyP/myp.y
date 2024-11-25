@@ -200,7 +200,7 @@ inst_list: inst_list inst PV   {}
      // chaque instruction se termine par ";" contrairement au langage C
 
 inst:
- {depth++;printf("SAVEBP\n");} 
+ {depth++;offset = 1;printf("SAVEBP\n");} 
  opt_vars  block_begin inst_list  block_end   {{printf("RESTOREBP\n");
                                               remove_local_variables(depth); depth--;}}
 | aff                         {}
@@ -224,7 +224,8 @@ block_end : BOUT
 
 aff : ida AFF exp               {sid id = string_to_sid($1);
                                 attribute valeur = get_symbol_value(id);
-                                if(valeur->type != $3) {fprintf(stderr,"Erreur: Type error in affectation\n"); exit(-1);}
+                                if(valeur->type == INT && $3 == FLOAT) {fprintf(stderr,"Erreur: Type error in affectation\n"); exit(-1);}
+                                if(valeur->type == FLOAT && $3 == INT){printf("I2F2\n");}
                                 printf("STOREP\n");}
 ;
 ida : ID                        {$$ = $1;
