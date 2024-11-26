@@ -16,6 +16,18 @@
 
 #include "Table_des_chaines.h"
 
+
+typedef struct linked {
+	int type;
+	struct linked* next;
+} linked;
+
+
+typedef struct args {
+	int num_args;
+	linked *args;
+}args;
+
 /* Déclarations des types d'attributs */
 
 char* type2string (int);
@@ -23,6 +35,7 @@ struct ATTRIBUTE {
   int type;
   int offset;
   int depth;
+  args *arguments;
   
   /* les autres attributs dont vous pourriez avoir besoin 
      pour les symboles seront déclarés ici */
@@ -46,5 +59,7 @@ attribute set_symbol_value(sid symb_id,attribute value);
 
 /* removes all symbols that have "depth" depth*/
 void remove_local_variables(int depth);
+
+void add_argument(args * arguments ,int Type);
 
 #endif

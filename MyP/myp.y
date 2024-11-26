@@ -23,7 +23,7 @@ int makeLabel ()
   return n++;
 }
 
-
+int num_args = 0;
 
   char * start_main=  
 "int main() {\n\
@@ -99,7 +99,7 @@ char * type2string (int c) {
 
 // liste de tous les non terminaux dont vous voulez manipuler l'attribut
 %type <type_value> type exp  typename
-%type <string_value> fun_head ida
+%type <string_value> fun_head ida fun_name
 %type <label_value> if while
 
  /* Attention, la rêgle de calcul par défaut $$=$1 
@@ -166,12 +166,15 @@ opt_funs : opt_funs function
 function : fun_head fun_body {}
 ;
 
-fun_head : fun fun_name opt_arg CLN type {}
+fun_head : fun fun_name opt_arg CLN type {printf("%s",$2);attribute valeur = get_symbol_value(string_to_sid($2));
+                                          valeur->type = $5;}
 ;
 
-fun:FUN
+fun:FUN           
 
-fun_name : ID
+fun_name : ID         {$$ = $1 ;depth++;num_args=0;
+                      attribute valeur = set_symbol_value(string_to_sid($1),makeSymbol(INT,-1,1));
+                      valeur->arguments = malloc(sizeof(args*));}
 ;
 
 opt_arg : PO arg_list PF
@@ -181,7 +184,17 @@ arg_list : arg vir arg_list
 	   // récursion droite pour numéroter les paramètres du dernier au premier
 | arg
 
-arg : ID CLN type              {}
+arg : ID CLN type             {--offset;
+                                attribute valeur = get_symbol_value(string_to_sid($<string_value>-1));
+                                args * arguments = valeur->arguments;
+                                add_argument(arguments,$3);
+                                if( $3 == INT ){
+                                valeur = set_symbol_value(string_to_sid($1), makeSymbol($3,offset-1, depth));
+                                }
+                                else if ( $3==FLOAT ){
+                                valeur = set_symbol_value(string_to_sid($1), makeSymbol($3,offset-1, depth));
+                                }
+                              }
 ;
 
 vir : VIR                      {}

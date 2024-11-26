@@ -47,6 +47,8 @@ typedef struct elem {
 	struct elem * next;
 } elem;
 
+
+
 /* linked chain initial element */
 static elem * storage=NULL;
 
@@ -92,4 +94,12 @@ void remove_local_variables(int depth){
 
 }
 
+void add_argument(args * arguments ,int Type){
+	linked * argument = malloc(sizeof(linked*));
+	argument->type = Type;
+	argument->next = arguments->args;
+	arguments->args = argument;
+	arguments->num_args++;
 
+
+}
