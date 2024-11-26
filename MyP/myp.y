@@ -17,6 +17,8 @@ void yyerror (char* s) {
 int depth=0; // block depth
 int offset =0 ;//var global offset 
 
+args * tracker = NULL;
+
 int makeLabel ()
 {
   static int n = 0;
@@ -99,7 +101,7 @@ char * type2string (int c) {
 
 // liste de tous les non terminaux dont vous voulez manipuler l'attribut
 %type <type_value> type exp  typename
-%type <string_value> fun_head ida fun_name
+%type <string_value> fun_head ida fun_name fid
 %type <label_value> if while
 
  /* Attention, la rêgle de calcul par défaut $$=$1 
@@ -163,18 +165,19 @@ opt_funs : opt_funs function
 | {printf("/* (Optionnal) functions' target PCode */\n\n");}
 ;
 
-function : fun_head fun_body {}
+function : fun_head fun_body {printf("}\n\n\n");remove_local_variables(depth--);}
 ;
 
-fun_head : fun fun_name opt_arg CLN type {printf("%s",$2);attribute valeur = get_symbol_value(string_to_sid($2));
+fun_head : fun fun_name opt_arg CLN type {attribute valeur = get_symbol_value(string_to_sid($2));
                                           valeur->type = $5;}
 ;
 
 fun:FUN           
 
-fun_name : ID         {$$ = $1 ;depth++;num_args=0;
-                      attribute valeur = set_symbol_value(string_to_sid($1),makeSymbol(INT,-1,1));
-                      valeur->arguments = malloc(sizeof(args*));}
+fun_name : ID         {$$ = $1 ;depth++;
+                      attribute valeur = set_symbol_value(string_to_sid($1),makeSymbol(INT,-1,0));
+                      valeur->arguments = malloc(sizeof(args*));
+                      printf("void call_%s(){\n",$1);}
 ;
 
 opt_arg : PO arg_list PF
@@ -188,6 +191,7 @@ arg : ID CLN type             {--offset;
                                 attribute valeur = get_symbol_value(string_to_sid($<string_value>-1));
                                 args * arguments = valeur->arguments;
                                 add_argument(arguments,$3);
+
                                 if( $3 == INT ){
                                 valeur = set_symbol_value(string_to_sid($1), makeSymbol($3,offset-1, depth));
                                 }
@@ -346,17 +350,25 @@ exp
 // V.3 Applications de fonctions
 
 
-app : fid PO args PF          {}
+app : fid PO args PF          {/*num_args = 0;int type = get_symbol_value(string_to_sid($1))->type;
+                              if( type == INT ){printf("LOADI(0)\n");}
+                              else if ( type ==FLOAT ){printf("LOADF(0.0)\n");}
+                              printf("SAVEBP\nCALL(call_%s)\nRESTOREBP\nENDCALL(%d)\n",$1,num_args);*/}
 ;
 
-fid : ID                      {}
+fid : ID                      {/*$$ = $1;args * tracker = get_symbol_value(string_to_sid($1))->arguments;*/}
 
 args :  arglist               {}
 |                             {}
 ;
 
 arglist : arglist VIR exp     {} // récursion gauche pour empiler les arguements de la fonction de gauche à droite
-| exp                         {}
+| exp                         {printf("%s\n",$<string_value>-2);/*args * arguments = get_symbol_value(string_to_sid($<string_value>-2))->arguments;
+                              if(tracker == NULL || $1 != tracker->type )
+                              {fprintf(stderr,"Error : arguments incompatible dans la fonction");
+	                            exit(-1);}
+                              tracker = tracker->next;*/
+                              }
 ;
 
 

@@ -86,7 +86,7 @@ attribute set_symbol_value(sid symb_id,attribute value) {
 
 void remove_local_variables(int depth){
 	elem * tracker = storage;
-	while (tracker->symbol_value->depth >= depth) {
+	while (tracker != NULL && tracker->symbol_value->depth >= depth) {
 		tracker = tracker -> next;
 		free(storage);
 		storage = tracker;
@@ -95,11 +95,7 @@ void remove_local_variables(int depth){
 }
 
 void add_argument(args * arguments ,int Type){
-	linked * argument = malloc(sizeof(linked*));
+	args * argument = malloc(sizeof(args*));
 	argument->type = Type;
-	argument->next = arguments->args;
-	arguments->args = argument;
-	arguments->num_args++;
-
-
+	argument->next = arguments;
 }

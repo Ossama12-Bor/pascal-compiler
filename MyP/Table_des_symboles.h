@@ -17,15 +17,12 @@
 #include "Table_des_chaines.h"
 
 
-typedef struct linked {
-	int type;
-	struct linked* next;
-} linked;
+
 
 
 typedef struct args {
-	int num_args;
-	linked *args;
+	int type;
+	struct args * next;
 }args;
 
 /* Déclarations des types d'attributs */
