@@ -190,8 +190,7 @@ arg_list : arg vir arg_list
 arg : ID CLN type             {--offset;
                                 attribute valeur = get_symbol_value(string_to_sid($<string_value>-1));
                                 args * arguments = valeur->arguments;
-                                add_argument(arguments,$3);
-
+                                add_argument(&(valeur->arguments),$3);
                                 if( $3 == INT ){
                                 valeur = set_symbol_value(string_to_sid($1), makeSymbol($3,offset-1, depth));
                                 }
@@ -350,24 +349,26 @@ exp
 // V.3 Applications de fonctions
 
 
-app : fid PO args PF          {/*num_args = 0;int type = get_symbol_value(string_to_sid($1))->type;
+app : fid PO args PF          {int type = get_symbol_value(string_to_sid($1))->type;
                               if( type == INT ){printf("LOADI(0)\n");}
                               else if ( type ==FLOAT ){printf("LOADF(0.0)\n");}
-                              printf("SAVEBP\nCALL(call_%s)\nRESTOREBP\nENDCALL(%d)\n",$1,num_args);*/}
+                              printf("SAVEBP\nCALL(call_%s)\nRESTOREBP\nENDCALL(%d)\n",$1,num_args);}
 ;
 
-fid : ID                      {/*$$ = $1;args * tracker = get_symbol_value(string_to_sid($1))->arguments;*/}
+fid : ID                      {num_args = 0;$$ = $1;tracker = get_symbol_value(string_to_sid($1))->arguments;}
 
-args :  arglist               {}
+args :  arglist               {if(tracker != NULL){/*fprintf(stderr,"Error : trop d'arguments\n");
+	                            exit(-1);*/}}
 |                             {}
 ;
 
-arglist : arglist VIR exp     {} // récursion gauche pour empiler les arguements de la fonction de gauche à droite
-| exp                         {printf("%s\n",$<string_value>-2);/*args * arguments = get_symbol_value(string_to_sid($<string_value>-2))->arguments;
+arglist : arglist VIR exp     {printf("hh");}// récursion gauche pour empiler les arguements de la fonction de gauche à droite
+                               
+| exp                         {num_args++;printf("%d",num_args);args * arguments = get_symbol_value(string_to_sid($<string_value>-1))->arguments;
                               if(tracker == NULL || $1 != tracker->type )
-                              {fprintf(stderr,"Error : arguments incompatible dans la fonction");
+                              {fprintf(stderr,"Error : arguments incompatible dans la fonction\n");
 	                            exit(-1);}
-                              tracker = tracker->next;*/
+                              tracker = tracker->next;
                               }
 ;
 

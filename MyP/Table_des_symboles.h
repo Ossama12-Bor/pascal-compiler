@@ -57,6 +57,6 @@ attribute set_symbol_value(sid symb_id,attribute value);
 /* removes all symbols that have "depth" depth*/
 void remove_local_variables(int depth);
 
-void add_argument(args * arguments ,int Type);
+void add_argument(args ** arguments ,int Type);
 
 #endif
