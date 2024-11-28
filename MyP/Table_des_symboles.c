@@ -80,12 +80,13 @@ attribute set_symbol_value(sid symb_id,attribute value) {
 }
 
 void free_arguments(args * arguments){
-	args * tracker;
-	while(arguments != NULL){
-		tracker = arguments->next;
-		free(arguments);
-		arguments = tracker;
+	linked * tracker;
+	while(arguments->head != NULL){
+		tracker = arguments->head->next;
+		free(arguments->head);
+		arguments->head = tracker;
 	}
+	free(arguments);
 }
 
 
@@ -103,10 +104,14 @@ void remove_local_variables(int depth){
 
 }
 
-void add_argument(args ** arguments ,int Type){
-	args * argument = malloc(sizeof(args));
+void add_argument(args * arguments ,int Type){
+	linked * argument = malloc(sizeof(linked));
 	argument->type = Type;
-	argument->next = *arguments;
-	*arguments = argument;
+	if (arguments->head == NULL) {
+        arguments->head = argument;
+    } else {
+        arguments->tail->next = argument;
+    }
+    arguments->tail = argument;
 }
 

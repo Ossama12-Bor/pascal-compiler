@@ -20,9 +20,14 @@
 
 
 
-typedef struct args {
+typedef struct linked {
 	int type;
-	struct args * next;
+	struct linked * next;
+}linked;
+
+typedef struct args {
+  linked * head;
+  linked * tail;
 }args;
 
 /* Déclarations des types d'attributs */
@@ -57,6 +62,8 @@ attribute set_symbol_value(sid symb_id,attribute value);
 /* removes all symbols that have "depth" depth*/
 void remove_local_variables(int depth);
 
-void add_argument(args ** arguments ,int Type);
+void free_arguments(args * arguments);
+
+void add_argument(args * arguments ,int Type);
 
 #endif

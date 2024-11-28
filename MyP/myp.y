@@ -17,7 +17,7 @@ void yyerror (char* s) {
 int depth=0; // block depth
 int offset =0 ;//var global offset 
 
-args * tracker = NULL;
+linked * tracker = NULL;
 
 int makeLabel ()
 {
@@ -101,7 +101,7 @@ char * type2string (int c) {
 
 // liste de tous les non terminaux dont vous voulez manipuler l'attribut
 %type <type_value> type exp  typename
-%type <string_value> fun_head ida fun_name fid
+%type <string_value> fun_head ida fun_name fid arg
 %type <label_value> if while
 
  /* Attention, la rêgle de calcul par défaut $$=$1 
@@ -174,9 +174,9 @@ fun_head : fun fun_name opt_arg CLN type {attribute valeur = get_symbol_value(st
 
 fun:FUN           
 
-fun_name : ID         {$$ = $1 ;depth++;
+fun_name : ID         {$$ = $1 ;depth++; num_args = 0;
                       attribute valeur = set_symbol_value(string_to_sid($1),makeSymbol(INT,-1,0));
-                      valeur->arguments = malloc(sizeof(args*));
+                      valeur->arguments = malloc(sizeof(args));
                       printf("void call_%s(){\n",$1);}
 ;
 
@@ -187,10 +187,10 @@ arg_list : arg vir arg_list
 	   // récursion droite pour numéroter les paramètres du dernier au premier
 | arg
 
-arg : ID CLN type             {--offset;
+arg : ID CLN type             {--offset; num_args++;$$ = $<string_value>-1; 
                                 attribute valeur = get_symbol_value(string_to_sid($<string_value>-1));
                                 args * arguments = valeur->arguments;
-                                add_argument(&(valeur->arguments),$3);
+                                add_argument(valeur->arguments,$3);
                                 if( $3 == INT ){
                                 valeur = set_symbol_value(string_to_sid($1), makeSymbol($3,offset-1, depth));
                                 }
@@ -203,7 +203,7 @@ arg : ID CLN type             {--offset;
 vir : VIR                      {}
 ;
 
-fun_body : opt_vars BIN inst_list BOUT PV    {}
+fun_body : opt_vars BIN inst_list BOUT PV    {remove_local_variables(depth);}
 ;
 
 // IV. Instructions
@@ -355,17 +355,21 @@ app : fid PO args PF          {int type = get_symbol_value(string_to_sid($1))->t
                               printf("SAVEBP\nCALL(call_%s)\nRESTOREBP\nENDCALL(%d)\n",$1,num_args);}
 ;
 
-fid : ID                      {num_args = 0;$$ = $1;tracker = get_symbol_value(string_to_sid($1))->arguments;}
+fid : ID                      {num_args = 0;$$ = $1;tracker = get_symbol_value(string_to_sid($1))->arguments->head;}
 
-args :  arglist               {if(tracker != NULL){/*fprintf(stderr,"Error : trop d'arguments\n");
-	                            exit(-1);*/}}
+args :  arglist               {if(tracker != NULL){fprintf(stderr,"Error : peu d'arguments\n");
+	                            exit(-1);}}
 |                             {}
 ;
 
-arglist : arglist VIR exp     {printf("hh");}// récursion gauche pour empiler les arguements de la fonction de gauche à droite
+arglist : arglist VIR exp     {num_args++;
+                              if(tracker == NULL || ($3 != tracker->type && (tracker->type == INT && $3 == FLOAT) ) )
+                              {fprintf(stderr,"Error : arguments incompatible dans la fonction ou trop d'arguments\n");
+	                            exit(-1);}
+                              tracker = tracker->next;}// récursion gauche pour empiler les arguements de la fonction de gauche à droite
                                
-| exp                         {num_args++;printf("%d",num_args);args * arguments = get_symbol_value(string_to_sid($<string_value>-1))->arguments;
-                              if(tracker == NULL || $1 != tracker->type )
+| exp                         {num_args++;
+                              if(tracker == NULL || ($1 != tracker->type && (tracker->type == INT && $1 == FLOAT) ))
                               {fprintf(stderr,"Error : arguments incompatible dans la fonction\n");
 	                            exit(-1);}
                               tracker = tracker->next;
